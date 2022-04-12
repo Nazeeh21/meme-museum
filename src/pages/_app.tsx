@@ -5,20 +5,35 @@ import { CacheProvider } from "@emotion/react";
 import "@fontsource/poppins";
 import "@fontsource/space-mono";
 import styled from "@emotion/styled";
+import { RoomProvider } from "@y-presence/react";
 import { DefaultSeo } from "next-seo";
 import { AppProps } from "next/app";
 import Head from "next/head";
 import Particles from "react-tsparticles";
+import ws from "ws";
+import { WebsocketProvider } from "y-websocket";
+import * as Y from "yjs";
 
 import "styles/globals.css";
 import defaultSEOConfig from "../../next-seo.config";
 import Fonts from "../components/fonts";
 import { Web3Provider } from "../contexts/Web3Provider";
 import Layout from "components/layout";
+import Room from "components/Room";
 import createEmotionCache from "styles/createEmotionCache";
 import theme from "styles/customTheme";
 
 const clientSideEmotionCache = createEmotionCache();
+const doc = new Y.Doc();
+
+const provider = new WebsocketProvider(
+  "ws://localhost:3000",
+  "y-presence-selection",
+  doc,
+  { WebSocketPolyfill: ws }
+);
+
+const { awareness } = provider;
 
 interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
@@ -46,9 +61,12 @@ const MyApp = ({
               />
             </Head>
             <DefaultSeo {...defaultSEOConfig} />
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
+            <RoomProvider awareness={awareness}>
+              <Room />
+              <Layout>
+                <Component {...pageProps} />
+              </Layout>
+            </RoomProvider>
           </AppContainer>
         </ChakraProvider>
       </CacheProvider>
